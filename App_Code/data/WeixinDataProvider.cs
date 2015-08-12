@@ -148,6 +148,49 @@ namespace com.dooqu.weixin.data
 
         }
 
+        /// <summary>
+        /// 获取网页的user_info_base,主要是获取openid和access_token两个参数
+        /// </summary>
+        /// <param name="code"></param>
+        /// <returns></returns>
+        public user_info_base GetOAuthUserInfoBase(string code)
+        {
+            string service_url = string.Format("https://api.weixin.qq.com/sns/oauth2/access_token?appid={0}&secret={1}&code={2}&grant_type=authorization_code",
+                this.appid, this.secret, code);
+
+            string response_content = GetResponseString(service_url);
+
+            user_info_base base_info = JsonConvert.DeserializeObject<user_info_base>(response_content);
+
+            if(base_info.no_error == false)
+                throw new sns_api_exception(base_info);
+
+            return base_info;
+        }
+
+        /// <summary>
+        /// 获取网页的oauth2.0的详细参数
+        /// </summary>
+        /// <param name="base_info"></param>
+        /// <returns></returns>
+        public user_info GetOAuthUserInfo(user_info_base base_info)
+        {
+            if (base_info == null)
+                throw new Exception("base_info_base 参数空引用");
+
+            string service_url = string.Format("https://api.weixin.qq.com/sns/userinfo?access_token={0}&openid={1}&lang=zh_CN", base_info.access_token, base_info.openid);
+
+            string response_content = GetResponseString(service_url);
+
+            user_info userinfo = JsonConvert.DeserializeObject<user_info>(response_content);
+
+            if (userinfo.no_error == false)
+                throw new sns_api_exception(userinfo);
+
+            return userinfo;
+        }
+
+
         static void token_update_timer__Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             
